@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Morning digest · 12 NEW + 0 drops</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<style>
+:root{--bg:#0b1017;--panel:#141c27;--panel2:#1c2633;--text:#f3f7fb;--muted:#93a4b8;--line:#2a3748;--accent:#2fe0c4;--blue:#6ea8fe;--good:#3ddc97;--warn:#f0b429;--new:#ff7ab8;--shadow:0 18px 50px rgba(0,0,0,.45)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:radial-gradient(900px 500px at 0% -10%,rgba(47,224,196,.16),transparent 55%),radial-gradient(800px 480px at 100% 0%,rgba(110,168,254,.14),transparent 50%),var(--bg)}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 16px 72px}
+.hero{display:grid;gap:14px;background:linear-gradient(160deg,rgba(20,28,39,.96),rgba(28,38,51,.92));border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:var(--shadow);margin-bottom:16px}
+h1{margin:0;font-size:clamp(1.45rem,3vw,2rem);letter-spacing:-.03em}
+.sub{margin:0;color:var(--muted);line-height:1.55;max-width:78ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:.9rem}
+.stat b{color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:.86rem}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.exact{background:#2fe0c4}.dot.street{background:#6ea8fe}.dot.area{background:#93a4b8;opacity:.7}
+.layout{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;margin-bottom:18px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
+#map{height:min(62vh,520px);border-radius:24px;border:1px solid var(--line);box-shadow:var(--shadow);background:#0e1620}
+.side{display:flex;flex-direction:column;gap:10px;min-height:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:6;background:rgba(11,16,23,.86);backdrop-filter:blur(12px);padding:8px 0;-webkit-backdrop-filter:blur(12px)}
+.toolbar button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;padding:8px 12px;cursor:pointer;font:inherit}
+.toolbar button.active{background:var(--accent);color:#04241e;border-color:var(--accent);font-weight:700}
+input[type=search],select{border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:9px 12px;font:inherit}
+input[type=search]{flex:1;min-width:140px}
+.list{overflow:auto;max-height:min(62vh,520px);display:flex;flex-direction:column;gap:10px;padding-right:2px;-webkit-overflow-scrolling:touch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);scroll-margin:80px}
+.card.no-broker{border-color:rgba(61,220,151,.35)}
+.card.is-new{box-shadow:0 0 0 1px rgba(255,122,184,.35),var(--shadow)}
+.card.is-drop{box-shadow:0 0 0 1px rgba(240,180,41,.35),var(--shadow)}
+.card.active{outline:2px solid var(--blue)}
+.card.hidden{display:none!important}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:start}
+.price{font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.specs{color:var(--muted);font-size:.92rem;margin-top:2px}
+.badge{font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
+.badge.no-broker{background:rgba(61,220,151,.12);color:var(--good);border-color:rgba(61,220,151,.35)}
+.badge.broker{background:rgba(240,180,41,.1);color:var(--warn);border-color:rgba(240,180,41,.3)}
+.loc{margin:0;font-weight:650}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.72rem;padding:4px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.chip.ok,.chip.good{color:var(--good);border-color:rgba(61,220,151,.35)}
+.chip.warn{color:var(--warn);border-color:rgba(240,180,41,.35)}
+.chip.pink{color:var(--new);border-color:rgba(255,122,184,.4)}
+.chip.blue{color:var(--blue);border-color:rgba(110,168,254,.4)}
+.chip.pin{color:#04241e;background:var(--accent);border-color:var(--accent);font-weight:700}
+.chip.pin-soft{color:#041428;background:var(--blue);border-color:var(--blue);font-weight:700}
+.chip.area{color:var(--muted)}
+.meta,.desc{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
+.desc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text);text-decoration:none;font-size:.86rem;font-weight:650}
+.btn.maps{background:rgba(110,168,254,.15);border-color:rgba(110,168,254,.4);color:#cfe0ff}
+.btn.call,.btn.wa{background:rgba(61,220,151,.12);border-color:rgba(61,220,151,.35);color:var(--good)}
+.status{font-size:.72rem;font-weight:800;letter-spacing:.06em;margin-bottom:2px}
+.status.new{color:var(--new)}.status.drop{color:var(--warn)}
+.sec{margin-top:22px}
+.sec-title{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:1.1rem}
+.sec-title span{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:.85rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.note{color:var(--muted);font-size:.9rem;line-height:1.5;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.25);border-radius:16px;padding:12px 14px;margin:10px 0 12px}
+footer{margin-top:28px;color:var(--muted);font-size:.85rem;line-height:1.5}
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(47,224,196,.25)!important}
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(47,224,196,.85)!important;color:#04241e!important;font-weight:800!important}
+.group-label{position:sticky;top:48px;z-index:5;background:rgba(20,28,39,.95);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:700;font-size:.9rem;color:var(--accent)}
+.empty{color:var(--muted);padding:16px;border:1px dashed var(--line);border-radius:16px}
+</style>
+</head><body><div class="wrap">
+<header class="hero">
+  <h1>Morning digest · last 24h NEW + price drops</h1>
+  <p class="sub">Tel Aviv central-north · parking + mamad/shelter · ≥50 m² · ≤₪10,000 (prefer ≤9,500)<br/>
+  Generated 2026-09-02 08:29 Asia/Jerusalem · Only NEW and PRICE DROP (STILL_UP inventory kept in DB, not this HTML)<br/>
+  Honest map: street-level pins only · MarkerCluster · never neighborhood centroids</p>
+  <div class="stats">
+    <div class="stat"><b>12</b> NEW</div>
+    <div class="stat"><b>0</b> price drops</div>
+    <div class="stat"><b>1</b> on map</div>
+    <div class="stat"><b>11</b> area-only</div>
+    <div class="stat"><b>1</b> no-broker</div>
+    <div class="stat"><b>10</b> ≤₪9,500</div>
+    <div class="stat"><b>101</b> full scan matches</div>
+  </div>
+  <div class="legend">
+    <span><i class="dot exact"></i> Exact pin (street + number)</span>
+    <span><i class="dot street"></i> Street approx pin</span>
+    <span><i class="dot area"></i> Area only — not on map</span>
+  </div>
+  <p class="note">Morning digest shows <b>only</b> listings new since last sent-history or with a price drop. Full inventory lives in listings-db.json / listings.json.</p>
+</header>
+
+<div class="layout">
+  <div id="map"></div>
+  <div class="side">
+    <div class="toolbar">
+      <button class="active" data-filter="all" type="button">All</button>
+      <button data-filter="has-pin" type="button">On map</button>
+      <button data-filter="area-only" type="button">Area only</button>
+      <button data-filter="no-broker" type="button">No broker</button>
+      <button data-filter="prefer" type="button">≤₪9,500</button>
+      <button data-filter="is-new" type="button">NEW</button>
+      <button data-filter="is-drop" type="button">Price drop</button>
+      <select id="rooms"><option value="">Rooms</option><option value="2">≥2</option><option value="3">≥3</option><option value="4">≥4</option></select>
+      <input id="q" type="search" placeholder="Filter street / hood / text…"/>
+    </div>
+    <div class="list" id="side-list">
+      <article class="card broker prefer is-new has-pin" id="card-7" data-idx="7" data-text="נחלת יצחק, נחלת יצחק broker, ≤9500, new 9500 new נחלת יצחק נחלת יצחק" data-status="NEW" data-conf="street" data-price="9500" data-rooms="3" data-lat="32.0741244" data-lon="34.7979059"><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,500</div><div class="specs">3 rms · 105 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">נחלת יצחק, נחלת יצחק</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip pin-soft">Street approx pin</span></div><p class="meta">realta · 2026-08-12 17:49 · conf:street</p><p class="desc">נחלת יצחק נחלת יצחק</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=32.0741244,34.7979059" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://realta.co.il/he/tel-aviv-yafo/nahlat-yitzhak/105495/" target="_blank" rel="noopener">Open listing</a></div></article><article class="card broker prefer is-new area-only" id="card-0" data-idx="0" data-text="פנקס, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 8500 new הצפון החדש - סביבת כיכר המדינה פנקס" data-status="NEW" data-conf="area" data-price="8500" data-rooms="2.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪8,500</div><div class="specs">2.0 rms · 50 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">פנקס, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-31 20:07 · 052-461-926 · conf:area</p><p class="desc">להשכרה בבניין חדש ברחוב פנקס פינת דה האז 
+▪️ביניין חדש
+▪️ 2 חדרים
+▪️מאוד מוארת
+▪️ נוף פתוח לחלוטין 
+▪️50 מ״ר
+▪️ממ״ד
+‼️אין מרפסת 
+▪️רהיטים של הדירה : מקלחון / כריים/ מדיח כלים / תנור
+▪️קומה 8 עם מעלית
+▪️חנייה תת קרקעית רג</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A4%D7%A0%D7%A7%D7%A1%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/131288860307566/posts/27067918342884586/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:052461926">Call</a><a class="btn wa" href="https://wa.me/97252461926" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-1" data-idx="1" data-text="רחוב תש&quot;ח, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 8700 new הצפון החדש - סביבת כיכר המדינה תש&quot;ח" data-status="NEW" data-conf="area" data-price="8700" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪8,700</div><div class="specs">3.0 rms · 62 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">רחוב תש&quot;ח, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-26 19:09 · 055-3358335 · conf:area</p><p class="desc">🏡 **להשכרה - דירת 3 חדרים בצפון החדש- בקרבת קאנטרי ארלוזורוב!**
+
+✨ מוארת | שקטה | מרווחת ✨
+
+English below
+
+* הדירה ממוקמת באיזור מצויין- ליד תש&quot;ח/ ארלוזורוב
+
+* מקלט בבניין
+
+* כ-62 מ&quot;ר
+
+* מטבח/סלון רחב ונוח
+
+* ריהוט- ארונ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A8%D7%97%D7%95%D7%91%20%D7%AA%D7%A9%22%D7%97%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/ApartmentsTelAviv/posts/10163471150257194/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0553358335">Call</a><a class="btn wa" href="https://wa.me/972553358335" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-2" data-idx="2" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 08:32 · 055-7241066 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/287564448778602/posts/2202114913990203/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0557241066">Call</a><a class="btn wa" href="https://wa.me/972557241066" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-3" data-idx="3" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-31 23:05 · 055-7241066 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1196843027043598/posts/28354895977478269/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0557241066">Call</a><a class="btn wa" href="https://wa.me/972557241066" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-4" data-idx="4" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-30 09:35 · 050-8562558 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1445210362209803/posts/28427143743589766/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0508562558">Call</a><a class="btn wa" href="https://wa.me/972508562558" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-5" data-idx="5" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-23 15:18 · 050-8562558 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/184920528370332/posts/3110351535827202/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0508562558">Call</a><a class="btn wa" href="https://wa.me/972508562558" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card no-broker prefer is-new area-only" id="card-6" data-idx="6" data-text="בילטמור, הצפון החדש - סביבת כיכר המדינה no-broker, renovated/new, ≤9500, size?, new 9200 new הצפון החדש - סביבת כיכר המדינה בילטמור" data-status="NEW" data-conf="area" data-price="9200" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,200</div><div class="specs">3.0 rms · size ?</div></div><div class="badge no-broker">No broker</div></div><p class="loc">בילטמור, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip good">No broker</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip warn">size?</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-29 21:08 · 052-6068843 · conf:area</p><p class="desc">דירת 3 חדרים יפה ומשופצת, מוארת ונעימה במיוחד - 
+
+בצפון הישן רחוב בילטמור
+
+קומה 4 עם מעלית וחניה משותפת
+
+מקלט מסודר בבניין
+
+מחיר 9200 ש&quot;ח
+
+צפוי תמא לא ידוע מתי
+
+מפרטי - לפרטים נוספים גיל בטל: 052-6068843</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%91%D7%99%D7%9C%D7%98%D7%9E%D7%95%D7%A8%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1749183625345821/posts/4423657691231721/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0526068843">Call</a><a class="btn wa" href="https://wa.me/972526068843" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-8" data-idx="8" data-text="רמז, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 9500 new הצפון החדש - סביבת כיכר המדינה רמז" data-status="NEW" data-conf="area" data-price="9500" data-rooms="2.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,500</div><div class="specs">2.0 rms · 60 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">רמז, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 17:10 · 0509184537 · conf:area</p><p class="desc">חדשה להשכרה - דירת גן🌳🌴
+ברחוב רמז המבוקש - תל אביב
+ליד כיכר המדינה/אבן גבירול/ בלוך 
+דירת גן מפוארת וחדשה בסטנדרט גבוהה✅
+2 חדרים = כ-60 מטר בנוי + 70 מטר חצר פרטית 🏡
+ממ״ד גדול✅
+חנייה ✅
+מחסן✅
+דמי ניהול - 420₪
+בניין חדש של</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A8%D7%9E%D7%96%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1445210362209803/posts/28456196680684472/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0509184537">Call</a><a class="btn wa" href="https://wa.me/972509184537" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-9" data-idx="9" data-text="רמז, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 9500 new הצפון החדש - סביבת כיכר המדינה רמז" data-status="NEW" data-conf="area" data-price="9500" data-rooms="2.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,500</div><div class="specs">2.0 rms · 60 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">רמז, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 10:22 · 050-918-4537 · conf:area</p><p class="desc">חדשה להשכרה - דירת גן🌳🌴
+ברחוב רמז המבוקש - תל אביב
+ליד כיכר המדינה/אבן גבירול/ בלוך 
+דירת גן מפוארת וחדשה בסטנדרט גבוהה✅
+2 חדרים = כ-60 מטר בנוי + 70 מטר חצר פרטית 🏡
+ממ״ד גדול✅
+חנייה ✅
+מחסן✅
+דמי ניהול - 420₪
+בניין חדש של</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A8%D7%9E%D7%96%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/563881507140230/posts/3178223219039366/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0509184537">Call</a><a class="btn wa" href="https://wa.me/972509184537" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker stretch is-new area-only" id="card-10" data-idx="10" data-text="ז׳בוטינסקי, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, new 9700 new הצפון החדש - סביבת כיכר המדינה ז׳בוטינסקי" data-status="NEW" data-conf="area" data-price="9700" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,700</div><div class="specs">3.0 rms · 81 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">ז׳בוטינסקי, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">₪9.5–10k</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 14:35 · 050-918-4537 · conf:area</p><p class="desc">חדשה להשכרה -
+ברחוב ז׳בוטינסקי - תל אביב
+ליד כיכר המדינה/אבן גבירול/ בלוך 
+דירת דופלקס מפוארת וחדשה✅
+3 חדרים=
+81 מטר בנוי +
+2 מרפסות שמש✅
+ממ״ד גדול✅
+חנייה ✅
+חדר מאסטר מפנק✅
+מטבח של סמל✅
+מוצרי חשמל✅
+2 קומות של דירה בסטנדר</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%96%D7%B3%D7%91%D7%95%D7%98%D7%99%D7%A0%D7%A1%D7%A7%D7%99%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/131288860307566/posts/27077466935263060/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0509184537">Call</a><a class="btn wa" href="https://wa.me/972509184537" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker stretch is-new area-only" id="card-11" data-idx="11" data-text="מנחם בגין 150, מונטיפיורי broker, renovated/new, size?, new 10000 new מונטיפיורי מנחם בגין" data-status="NEW" data-conf="area" data-price="10000" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪10,000</div><div class="specs">3.0 rms · size ?</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">מנחם בגין 150, מונטיפיורי</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">₪9.5–10k</span><span class="chip pink">NEW</span><span class="chip warn">size?</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 11:47 · 052-529-9379 · conf:area</p><p class="desc">^ דירת 3 חד&#x27; חדשה במגדל WE - עם חניה פרטית וחדר כושר ^
+
+להשכרה - מתיווך
+
+# מרווחת
+# מיקום: מנחם בגין 150 - מגדל WE
+# חניה פרטית!
+# קומה 24 - יש מעליות
+# חדר כושר ושומר בכניסה במגדל
+# נוף לים!
+# צמוד לתחנת רכבת קלה
+# מואר</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%9E%D7%A0%D7%97%D7%9D%20%D7%91%D7%92%D7%99%D7%9F%20150%20%D7%9E%D7%95%D7%A0%D7%98%D7%99%D7%A4%D7%99%D7%95%D7%A8%D7%99%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/252996637878752/posts/914094218435654/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0525299379">Call</a><a class="btn wa" href="https://wa.me/972525299379" target="_blank" rel="noopener">WhatsApp</a></div></article>
+    </div>
+  </div>
+</div>
+
+<section class="sec" id="sec-new">
+  <h3 class="sec-title">NEW <span>12</span></h3>
+  <div class="grid" id="grid-new"><article class="card broker prefer is-new area-only" id="card-0" data-idx="0" data-text="פנקס, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 8500 new הצפון החדש - סביבת כיכר המדינה פנקס" data-status="NEW" data-conf="area" data-price="8500" data-rooms="2.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪8,500</div><div class="specs">2.0 rms · 50 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">פנקס, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-31 20:07 · 052-461-926 · conf:area</p><p class="desc">להשכרה בבניין חדש ברחוב פנקס פינת דה האז 
+▪️ביניין חדש
+▪️ 2 חדרים
+▪️מאוד מוארת
+▪️ נוף פתוח לחלוטין 
+▪️50 מ״ר
+▪️ממ״ד
+‼️אין מרפסת 
+▪️רהיטים של הדירה : מקלחון / כריים/ מדיח כלים / תנור
+▪️קומה 8 עם מעלית
+▪️חנייה תת קרקעית רג</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A4%D7%A0%D7%A7%D7%A1%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/131288860307566/posts/27067918342884586/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:052461926">Call</a><a class="btn wa" href="https://wa.me/97252461926" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-1" data-idx="1" data-text="רחוב תש&quot;ח, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 8700 new הצפון החדש - סביבת כיכר המדינה תש&quot;ח" data-status="NEW" data-conf="area" data-price="8700" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪8,700</div><div class="specs">3.0 rms · 62 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">רחוב תש&quot;ח, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-26 19:09 · 055-3358335 · conf:area</p><p class="desc">🏡 **להשכרה - דירת 3 חדרים בצפון החדש- בקרבת קאנטרי ארלוזורוב!**
+
+✨ מוארת | שקטה | מרווחת ✨
+
+English below
+
+* הדירה ממוקמת באיזור מצויין- ליד תש&quot;ח/ ארלוזורוב
+
+* מקלט בבניין
+
+* כ-62 מ&quot;ר
+
+* מטבח/סלון רחב ונוח
+
+* ריהוט- ארונ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A8%D7%97%D7%95%D7%91%20%D7%AA%D7%A9%22%D7%97%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/ApartmentsTelAviv/posts/10163471150257194/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0553358335">Call</a><a class="btn wa" href="https://wa.me/972553358335" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-2" data-idx="2" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 08:32 · 055-7241066 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/287564448778602/posts/2202114913990203/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0557241066">Call</a><a class="btn wa" href="https://wa.me/972557241066" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-3" data-idx="3" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-31 23:05 · 055-7241066 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1196843027043598/posts/28354895977478269/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0557241066">Call</a><a class="btn wa" href="https://wa.me/972557241066" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-4" data-idx="4" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-30 09:35 · 050-8562558 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1445210362209803/posts/28427143743589766/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0508562558">Call</a><a class="btn wa" href="https://wa.me/972508562558" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-5" data-idx="5" data-text="הצפון החדש - סביבת כיכר המדינה broker, ≤9500, new 9000 new הצפון החדש - סביבת כיכר המדינה none" data-status="NEW" data-conf="area" data-price="9000" data-rooms="2.5" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,000</div><div class="specs">2.5 rms · 90 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-23 15:18 · 050-8562558 · conf:area</p><p class="desc">להשכרה מתיווך ! בסימטאות כיכר המדינה מתפנה לה דירת 2.5 חדרים בשטח של 90 מ&quot;ר ענקית ! סלון גדול עם מקום לפינת אוכל, יציאה למרפסת סגורה שווה ! מטבח נפרד עם מרפסת שירות ! בניין מטופח עם גינה ענקית אשר משותפת לכל הקומפלקס ! מ</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/184920528370332/posts/3110351535827202/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0508562558">Call</a><a class="btn wa" href="https://wa.me/972508562558" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card no-broker prefer is-new area-only" id="card-6" data-idx="6" data-text="בילטמור, הצפון החדש - סביבת כיכר המדינה no-broker, renovated/new, ≤9500, size?, new 9200 new הצפון החדש - סביבת כיכר המדינה בילטמור" data-status="NEW" data-conf="area" data-price="9200" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,200</div><div class="specs">3.0 rms · size ?</div></div><div class="badge no-broker">No broker</div></div><p class="loc">בילטמור, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip good">No broker</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip warn">size?</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-08-29 21:08 · 052-6068843 · conf:area</p><p class="desc">דירת 3 חדרים יפה ומשופצת, מוארת ונעימה במיוחד - 
+
+בצפון הישן רחוב בילטמור
+
+קומה 4 עם מעלית וחניה משותפת
+
+מקלט מסודר בבניין
+
+מחיר 9200 ש&quot;ח
+
+צפוי תמא לא ידוע מתי
+
+מפרטי - לפרטים נוספים גיל בטל: 052-6068843</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%91%D7%99%D7%9C%D7%98%D7%9E%D7%95%D7%A8%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1749183625345821/posts/4423657691231721/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0526068843">Call</a><a class="btn wa" href="https://wa.me/972526068843" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new has-pin" id="card-7" data-idx="7" data-text="נחלת יצחק, נחלת יצחק broker, ≤9500, new 9500 new נחלת יצחק נחלת יצחק" data-status="NEW" data-conf="street" data-price="9500" data-rooms="3" data-lat="32.0741244" data-lon="34.7979059"><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,500</div><div class="specs">3 rms · 105 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">נחלת יצחק, נחלת יצחק</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip pin-soft">Street approx pin</span></div><p class="meta">realta · 2026-08-12 17:49 · conf:street</p><p class="desc">נחלת יצחק נחלת יצחק</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=32.0741244,34.7979059" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://realta.co.il/he/tel-aviv-yafo/nahlat-yitzhak/105495/" target="_blank" rel="noopener">Open listing</a></div></article><article class="card broker prefer is-new area-only" id="card-8" data-idx="8" data-text="רמז, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 9500 new הצפון החדש - סביבת כיכר המדינה רמז" data-status="NEW" data-conf="area" data-price="9500" data-rooms="2.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,500</div><div class="specs">2.0 rms · 60 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">רמז, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 17:10 · 0509184537 · conf:area</p><p class="desc">חדשה להשכרה - דירת גן🌳🌴
+ברחוב רמז המבוקש - תל אביב
+ליד כיכר המדינה/אבן גבירול/ בלוך 
+דירת גן מפוארת וחדשה בסטנדרט גבוהה✅
+2 חדרים = כ-60 מטר בנוי + 70 מטר חצר פרטית 🏡
+ממ״ד גדול✅
+חנייה ✅
+מחסן✅
+דמי ניהול - 420₪
+בניין חדש של</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A8%D7%9E%D7%96%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/1445210362209803/posts/28456196680684472/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0509184537">Call</a><a class="btn wa" href="https://wa.me/972509184537" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker prefer is-new area-only" id="card-9" data-idx="9" data-text="רמז, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, ≤9500, new 9500 new הצפון החדש - סביבת כיכר המדינה רמז" data-status="NEW" data-conf="area" data-price="9500" data-rooms="2.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,500</div><div class="specs">2.0 rms · 60 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">רמז, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">≤₪9,500</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 10:22 · 050-918-4537 · conf:area</p><p class="desc">חדשה להשכרה - דירת גן🌳🌴
+ברחוב רמז המבוקש - תל אביב
+ליד כיכר המדינה/אבן גבירול/ בלוך 
+דירת גן מפוארת וחדשה בסטנדרט גבוהה✅
+2 חדרים = כ-60 מטר בנוי + 70 מטר חצר פרטית 🏡
+ממ״ד גדול✅
+חנייה ✅
+מחסן✅
+דמי ניהול - 420₪
+בניין חדש של</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%A8%D7%9E%D7%96%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/563881507140230/posts/3178223219039366/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0509184537">Call</a><a class="btn wa" href="https://wa.me/972509184537" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker stretch is-new area-only" id="card-10" data-idx="10" data-text="ז׳בוטינסקי, הצפון החדש - סביבת כיכר המדינה broker, renovated/new, new 9700 new הצפון החדש - סביבת כיכר המדינה ז׳בוטינסקי" data-status="NEW" data-conf="area" data-price="9700" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪9,700</div><div class="specs">3.0 rms · 81 m²</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">ז׳בוטינסקי, הצפון החדש - סביבת כיכר המדינה</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">₪9.5–10k</span><span class="chip pink">NEW</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 14:35 · 050-918-4537 · conf:area</p><p class="desc">חדשה להשכרה -
+ברחוב ז׳בוטינסקי - תל אביב
+ליד כיכר המדינה/אבן גבירול/ בלוך 
+דירת דופלקס מפוארת וחדשה✅
+3 חדרים=
+81 מטר בנוי +
+2 מרפסות שמש✅
+ממ״ד גדול✅
+חנייה ✅
+חדר מאסטר מפנק✅
+מטבח של סמל✅
+מוצרי חשמל✅
+2 קומות של דירה בסטנדר</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%96%D7%B3%D7%91%D7%95%D7%98%D7%99%D7%A0%D7%A1%D7%A7%D7%99%20%D7%94%D7%A6%D7%A4%D7%95%D7%9F%20%D7%94%D7%97%D7%93%D7%A9%20-%20%D7%A1%D7%91%D7%99%D7%91%D7%AA%20%D7%9B%D7%99%D7%9B%D7%A8%20%D7%94%D7%9E%D7%93%D7%99%D7%A0%D7%94%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/131288860307566/posts/27077466935263060/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0509184537">Call</a><a class="btn wa" href="https://wa.me/972509184537" target="_blank" rel="noopener">WhatsApp</a></div></article><article class="card broker stretch is-new area-only" id="card-11" data-idx="11" data-text="מנחם בגין 150, מונטיפיורי broker, renovated/new, size?, new 10000 new מונטיפיורי מנחם בגין" data-status="NEW" data-conf="area" data-price="10000" data-rooms="3.0" data-lat="" data-lon=""><div class="status new">NEW</div><div class="top"><div><div class="price">₪10,000</div><div class="specs">3.0 rms · size ?</div></div><div class="badge broker">Broker / unknown</div></div><p class="loc">מנחם בגין 150, מונטיפיורי</p><div class="chips"><span class="chip ok">Parking</span><span class="chip ok">Mamad / shelter</span><span class="chip warn">Broker / unknown</span><span class="chip good">Renovated/new</span><span class="chip">₪9.5–10k</span><span class="chip pink">NEW</span><span class="chip warn">size?</span><span class="chip area">Area only · no pin</span></div><p class="meta">rentlyfly · 2026-09-01 11:47 · 052-529-9379 · conf:area</p><p class="desc">^ דירת 3 חד&#x27; חדשה במגדל WE - עם חניה פרטית וחדר כושר ^
+
+להשכרה - מתיווך
+
+# מרווחת
+# מיקום: מנחם בגין 150 - מגדל WE
+# חניה פרטית!
+# קומה 24 - יש מעליות
+# חדר כושר ושומר בכניסה במגדל
+# נוף לים!
+# צמוד לתחנת רכבת קלה
+# מואר</p><div class="actions"><a class="btn maps" href="https://www.google.com/maps/search/?api=1&amp;query=%D7%9E%D7%A0%D7%97%D7%9D%20%D7%91%D7%92%D7%99%D7%9F%20150%20%D7%9E%D7%95%D7%A0%D7%98%D7%99%D7%A4%D7%99%D7%95%D7%A8%D7%99%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91%20%D7%99%D7%A4%D7%95" target="_blank" rel="noopener">Google Maps</a><a class="btn" href="https://www.facebook.com/groups/252996637878752/posts/914094218435654/" target="_blank" rel="noopener">Open listing</a><a class="btn call" href="tel:0525299379">Call</a><a class="btn wa" href="https://wa.me/972525299379" target="_blank" rel="noopener">WhatsApp</a></div></article></div>
+</section>
+<section class="sec" id="sec-drops">
+  <h3 class="sec-title">PRICE DROPS <span>0</span></h3>
+  <div class="grid" id="grid-drops"><div class="empty">No price drops this morning.</div></div>
+</section>
+
+<footer>
+  Sources: Rentlyfly, Dorin, Realta (aggregators only — no facebook.com login). MarkerCluster for exact pins.
+  Full inventory: listings-db.json · negotiate candidates tracked separately.
+</footer>
+</div>
+<script>
+const PINS = [{"idx": 7, "lat": 32.0741244, "lon": 34.7979059, "conf": "street", "price": 9500, "label": "נחלת יצחק · נחלת יצחק", "status": "NEW"}];
+const map = L.map('map', {scrollWheelZoom:true}).setView([32.085, 34.782], 13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+}).addTo(map);
+const cluster = L.markerClusterGroup({showCoverageOnHover:false, maxClusterRadius:48});
+const markersByIdx = {};
+function pinColor(conf){ return conf === 'street+number' ? '#2fe0c4' : '#6ea8fe'; }
+function highlight(idx){
+  document.querySelectorAll('.card.active').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#card-'+idx+', [id="card-'+idx+'"]').forEach(c=>{
+    c.classList.add('active');
+  });
+  const side = document.querySelector('#side-list #card-'+idx);
+  if(side) side.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+PINS.forEach(p=>{
+  const icon = L.divIcon({
+    className:'',
+    html:`<div style="width:14px;height:14px;border-radius:50%;background:${pinColor(p.conf)};border:2px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.35)"></div>`,
+    iconSize:[14,14], iconAnchor:[7,7]
+  });
+  const m = L.marker([p.lat, p.lon], {icon});
+  const price = (p.price||0).toLocaleString();
+  m.bindPopup(`<b>₪${price}</b><br/>${p.label||''}<br/><i>${p.conf}</i>`);
+  m.on('click', ()=>highlight(p.idx));
+  cluster.addLayer(m);
+  markersByIdx[p.idx]=m;
+});
+map.addLayer(cluster);
+if(PINS.length){
+  map.fitBounds(L.latLngBounds(PINS.map(p=>[p.lat,p.lon])).pad(0.12));
+}
+document.querySelectorAll('#side-list .card.has-pin').forEach(c=>{
+  c.addEventListener('click', ev=>{
+    if(ev.target.closest('a')) return;
+    const idx=+c.dataset.idx; const mk=markersByIdx[idx];
+    if(mk){ cluster.zoomToShowLayer(mk, ()=>{ mk.openPopup(); highlight(idx); }); }
+  });
+});
+document.querySelectorAll('#grid-new .card, #grid-drops .card').forEach(c=>{
+  c.id = 'grid-' + c.id;
+});
+const buttons=[...document.querySelectorAll('.toolbar button')];
+const q=document.getElementById('q');
+const rooms=document.getElementById('rooms');
+let mode='all';
+function apply(){
+  const term=q.value.trim().toLowerCase();
+  const minRooms=parseFloat(rooms.value||'');
+  document.querySelectorAll('.card').forEach(c=>{
+    const okMode=mode==='all'||c.classList.contains(mode);
+    const okTerm=!term||(c.dataset.text||'').includes(term);
+    const r=parseFloat(c.dataset.rooms||'');
+    const okRooms=!minRooms||(!isNaN(r)&&r>=minRooms);
+    c.classList.toggle('hidden', !(okMode&&okTerm&&okRooms));
+  });
+  buttons.forEach(b=>b.classList.toggle('active', b.dataset.filter===mode));
+}
+buttons.forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.filter;apply();}));
+q.addEventListener('input',apply);
+rooms.addEventListener('change',apply);
+</script>
+</body></html>
