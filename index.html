@@ -285,7 +285,7 @@ English below
 </footer>
 </div>
 <script>
-const PINS = [{"idx": 7, "lat": 32.0741244, "lon": 34.7979059, "conf": "street", "price": 9500, "label": "נחלת יצחק · נחלת יצחק", "status": "NEW"}];
+const PINS = [{"idx": 0, "lat": 32.0741244, "lon": 34.7979059, "conf": "street", "price": 9500, "label": "נחלת יצחק, נחלת יצחק", "status": "NEW"}, {"idx": 1, "lat": 32.0909497, "lon": 34.7846282, "conf": "street", "price": 8500, "label": "פנקס, הצפון החדש - סביבת כיכר המדינה", "status": "NEW"}, {"idx": 2, "lat": 32.0844278, "lon": 34.7864808, "conf": "street", "price": 8700, "label": "רחוב תש\"ח, הצפון החדש - סביבת כיכר המדינה", "status": "NEW"}, {"idx": 7, "lat": 32.088354, "lon": 34.7871789, "conf": "street", "price": 9200, "label": "בילטמור, הצפון החדש - סביבת כיכר המדינה", "status": "NEW"}, {"idx": 8, "lat": 32.0852735, "lon": 34.7861819, "conf": "street", "price": 9500, "label": "רמז, הצפון החדש - סביבת כיכר המדינה", "status": "NEW"}, {"idx": 9, "lat": 32.0852735, "lon": 34.7861819, "conf": "street", "price": 9500, "label": "רמז, הצפון החדש - סביבת כיכר המדינה", "status": "NEW"}, {"idx": 10, "lat": 32.0864, "lon": 34.792221, "conf": "street", "price": 9700, "label": "ז׳בוטינסקי, הצפון החדש - סביבת כיכר המדינה", "status": "NEW"}, {"idx": 11, "lat": 32.0674923, "lon": 34.7854647, "conf": "street", "price": 10000, "label": "מנחם בגין 150, מונטיפיורי", "status": "NEW"}];
 const map = L.map('map', {scrollWheelZoom:true}).setView([32.085, 34.782], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -304,9 +304,9 @@ function highlight(idx){
 }
 PINS.forEach(p=>{
   const icon = L.divIcon({
-    className:'',
-    html:`<div style="width:14px;height:14px;border-radius:50%;background:${pinColor(p.conf)};border:2px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.35)"></div>`,
-    iconSize:[14,14], iconAnchor:[7,7]
+    className:'apt-pin',
+    html:`<div style="width:22px;height:22px;border-radius:50%;background:${pinColor(p.conf)};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45)"></div>`,
+    iconSize:[22,22], iconAnchor:[11,11]
   });
   const m = L.marker([p.lat, p.lon], {icon});
   const price = (p.price||0).toLocaleString();
@@ -316,6 +316,8 @@ PINS.forEach(p=>{
   markersByIdx[p.idx]=m;
 });
 map.addLayer(cluster);
+setTimeout(()=>map.invalidateSize(), 200);
+setTimeout(()=>map.invalidateSize(), 800);
 if(PINS.length){
   map.fitBounds(L.latLngBounds(PINS.map(p=>[p.lat,p.lon])).pad(0.12));
 }
